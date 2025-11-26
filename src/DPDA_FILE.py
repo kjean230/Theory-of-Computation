@@ -21,3 +21,8 @@ GAMMA = {"S", "a", "b", BOT} # the symbols that are allowed within the stack
 
 G1 = "S→aSb" # the first grammer rule when expanding 'S'
 G2 = "S→ε"  # the second grammer rule when expanding 'S' to empty string
+
+INIT_PUSH_BOTTOM_AND_START = "init: push ⊥ and S"  # first move: set up the stack with bottom marker and start symbol
+
+LOOKAHEAD_DISPATCH_ON_A = "lookahead a: go to qa"  # if next input is 'a', move to the 'a' gate state
+LOOKAHEAD_DISPATCH_ON_B = "lookahead b: go to qb"  # if next input is 'b', move to the 'b' gate state
