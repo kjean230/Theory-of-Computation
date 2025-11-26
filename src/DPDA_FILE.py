@@ -18,3 +18,6 @@ FINAL_STATES = {QACC} # the ONLY final accepting state
 
 SIGMA = {"a", "b", END} # input alphabet (including endmarker '$')
 GAMMA = {"S", "a", "b", BOT} # the symbols that are allowed within the stack
+
+G1 = "S→aSb" # the first grammer rule when expanding 'S'
+G2 = "S→ε"  # the second grammer rule when expanding 'S' to empty string
