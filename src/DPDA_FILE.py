@@ -35,3 +35,10 @@ EXPAND_S_TO_EPSILON_AT_ENDMARKER = "expand S→ε (la=$)"  # when gate is q$, re
 
 HANDOFF_BACK_TO_DRIVER_AFTER_PUSHING_A = "handoff: qa on 'a' → q"  # after pushing an 'a', return control from qa to q
 HANDOFF_BACK_TO_DRIVER_AFTER_PUSHING_B = "handoff: qb on 'b' → q"  # after pushing a 'b', return control from qb to q
+
+MATCH_TERMINAL_A = "match terminal 'a'"  # when top is 'a' and next input is 'a', pop it and advance
+MATCH_TERMINAL_B = "match terminal 'b'"  # when top is 'b' and next input is 'b', pop it and advance
+FINAL_POP_BOTTOM_AND_ACCEPT = "final: pop ⊥ and accept"  # when only ⊥ remains, pop it and move to the accepting state
+
+# ----- Ordered transition list: (state, input, top, next, push, label, G, consumes) -----
+TABLE_HEADER = "step | state | unread | top | Δ | G"  # header line for the output table
