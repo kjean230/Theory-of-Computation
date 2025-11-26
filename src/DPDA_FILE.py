@@ -32,3 +32,6 @@ LOOKAHEAD_DISPATCH_ON_ENDMARKER = "lookahead $: go to q$"  # if next input is '$
 EXPAND_S_TO_aSb_WHEN_LOOKAHEAD_A = "expand S→aSb (la=a)"  # when gate is qa, replace S on stack with 'a S b'
 EXPAND_S_TO_EPSILON_WHEN_LOOKAHEAD_B = "expand S→ε (la=b)"  # when gate is qb, remove S (use the ε production)
 EXPAND_S_TO_EPSILON_AT_ENDMARKER = "expand S→ε (la=$)"  # when gate is q$, remove S at end of input
+
+HANDOFF_BACK_TO_DRIVER_AFTER_PUSHING_A = "handoff: qa on 'a' → q"  # after pushing an 'a', return control from qa to q
+HANDOFF_BACK_TO_DRIVER_AFTER_PUSHING_B = "handoff: qb on 'b' → q"  # after pushing a 'b', return control from qb to q
