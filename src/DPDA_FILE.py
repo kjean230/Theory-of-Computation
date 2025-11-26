@@ -26,3 +26,9 @@ INIT_PUSH_BOTTOM_AND_START = "init: push ⊥ and S"  # first move: set up the st
 
 LOOKAHEAD_DISPATCH_ON_A = "lookahead a: go to qa"  # if next input is 'a', move to the 'a' gate state
 LOOKAHEAD_DISPATCH_ON_B = "lookahead b: go to qb"  # if next input is 'b', move to the 'b' gate state
+
+LOOKAHEAD_DISPATCH_ON_ENDMARKER = "lookahead $: go to q$"  # if next input is '$', move to the end-marker gate state
+
+EXPAND_S_TO_aSb_WHEN_LOOKAHEAD_A = "expand S→aSb (la=a)"  # when gate is qa, replace S on stack with 'a S b'
+EXPAND_S_TO_EPSILON_WHEN_LOOKAHEAD_B = "expand S→ε (la=b)"  # when gate is qb, remove S (use the ε production)
+EXPAND_S_TO_EPSILON_AT_ENDMARKER = "expand S→ε (la=$)"  # when gate is q$, remove S at end of input
