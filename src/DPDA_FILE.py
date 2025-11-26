@@ -3,3 +3,4 @@
 
 EPS = 'ε' # this represents the empty string (EPSILON) - no input
 BOT = '⊥' # this represents the bottom stack symbol
+P = 'p' # the pre-initial state (before pushing any inputs)
