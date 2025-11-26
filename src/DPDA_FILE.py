@@ -76,3 +76,6 @@ TRANSITIONS = [  # ordered deterministic transitions: (state, input, top, next, 
     (QD, EPS,  "S",  QD,  "",          EXPAND_S_TO_EPSILON_AT_ENDMARKER,        G2,     False),
     (QD, EPS,  BOT,  QACC,"",          FINAL_POP_BOTTOM_AND_ACCEPT,             "-",    False),
 ]
+
+class DPDA: # holds the machine state, transitions, and run logic
+    ...
