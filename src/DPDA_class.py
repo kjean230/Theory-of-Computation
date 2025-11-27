@@ -27,3 +27,12 @@ class DPDA: # holds the machine state, transitions, and run logic
         self.state = P
         self.stack = []
         self.trace = []
+
+    def _stack_top(self):
+        return self.stack[-1] if self.stack else EPS
+    
+    def _unread(self):
+        return self.input_str[self.idx:]
+    
+    def _next_input(self):
+        return self.input_str[self.idx] if self.idx < len(self.input_str) else EPS
