@@ -91,3 +91,8 @@ class DPDA: # holds the machine state, transitions, and run logic
             self._append_row(step, label, g)        # log BEFORE applying the transition (as required by your table)
             self._apply(entry)                       # mutate state, stack, and input index
             step += 1                                # next row number
+
+    def print_table(self):  # print the fixed-width table for the current trace
+        print(TABLE_HEADER)
+        for step, state, unread, top, label, g in self.trace:
+            print(f"{step:>4} | {state:<4} | {unread:<12} | {top:^3} | {label:<36} | {g}")
