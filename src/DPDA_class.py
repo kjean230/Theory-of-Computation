@@ -36,3 +36,29 @@ class DPDA: # holds the machine state, transitions, and run logic
     
     def _next_input(self):
         return self.input_str[self.idx] if self.idx < len(self.input_str) else EPS
+
+    def _append_row(self, step, label, g):
+        self.trace.append((
+            step,
+            self.state,
+            self._unread(),
+            self.stack_top(),
+            label,
+            g
+        ))
+
+    def _match_entry(self):
+        la = self._next_input()
+        top = self._stack_top()
+        st = self.state
+
+        for (s, in_sym, t, next_state, push, label, g, consumes) in self.transitions:
+            if s != st:
+                continue
+            if in_sym == EPS:
+                if t == top: 
+                    return (s, in_sym, t, next_state, push, label, g, consumes)
+            else: 
+                if in_sym == la and t == top:
+                    return (s, in_sym, t, next_state, push, label, g, consumes)
+        return None
