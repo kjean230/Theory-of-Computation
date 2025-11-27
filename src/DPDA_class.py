@@ -72,3 +72,22 @@ class DPDA: # holds the machine state, transitions, and run logic
         if consumes:                        # advance input index if this rule consumes a symbol
             self.idx += 1
         self.state = next_state             # move to the next state
+
+    def run(self, input_obj):  # execute the DPDA on the given input; return (accepted, trace_rows)
+        s = self.normalize_input(input_obj)  # ensure string ends with '$' and uses only allowed symbols
+        self.reset(s)                        # start fresh: state=p, idx=0, empty stack, clear trace
+
+        step = 0
+        while True:
+            if self.state in FINAL_STATES:           # reached accepting state
+                return True, self.trace
+
+            entry = self._match_entry()              # pick the single deterministic next move
+            if entry is None:                        # no move ⇒ reject with trace as-is
+                self._append_row(step, "—", "—")     # log a terminal row showing no applicable transition
+                return False, self.trace
+
+            _s, in_sym, _t, _n, _push, label, g, _c = entry
+            self._append_row(step, label, g)        # log BEFORE applying the transition (as required by your table)
+            self._apply(entry)                       # mutate state, stack, and input index
+            step += 1                                # next row number
