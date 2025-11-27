@@ -62,3 +62,13 @@ class DPDA: # holds the machine state, transitions, and run logic
                 if in_sym == la and t == top:
                     return (s, in_sym, t, next_state, push, label, g, consumes)
         return None
+    
+    def _apply(self, entry):  # execute the selected transition: pop/push stack, advance input, change state
+        (_, in_sym, top_sym, next_state, push, _label, _g, consumes) = entry
+        if top_sym != EPS and self.stack:  # pop the expected top (if any)
+            self.stack.pop()
+        for ch in push:                     # push left→right so the rightmost becomes the new top
+            self.stack.append(ch)
+        if consumes:                        # advance input index if this rule consumes a symbol
+            self.idx += 1
+        self.state = next_state             # move to the next state
