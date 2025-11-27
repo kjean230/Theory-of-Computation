@@ -20,3 +20,10 @@ class DPDA: # holds the machine state, transitions, and run logic
                 if ch not in SIGMA:
                     raise ValueError(f"Illegal symbol: {repr(ch)}; allowed symbols: {SIGMA}")
         return s
+    
+    def reset(self, s):
+        self.input_str = s 
+        self.idx = 0
+        self.state = P
+        self.stack = []
+        self.trace = []
