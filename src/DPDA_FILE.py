@@ -44,35 +44,28 @@ FINAL_POP_BOTTOM_AND_ACCEPT = "final: pop ⊥ and accept"  # when only ⊥ remai
 TABLE_HEADER = "step | state | unread | top | Δ | G"  # header line for the output table
 
 # ---- transitions representation, matching the table header ---- #
-TRANSITIONS = [  # ordered deterministic transitions: (state, input, top, next, push, label, G, consumes)
+TRANSITIONS = [  # (state, input, top, next, push, label, G, consumes)
 
-    # 0) Initialization: push bottom marker and start symbol; do not consume input
+    # 0) init: push ⊥ and S
     (P,  EPS,  EPS,  Q,   f"{BOT}S",  INIT_PUSH_BOTTOM_AND_START,              "-",    False),
 
-    # 1) Lookahead dispatch while top is S (choose how to expand S based on next input)
-    #    These DO NOT consume input for 'a' or 'b' (we only peek).
-    (Q, "a", "S", QA, "S", LOOKAHEAD_DISPATCH_ON_A, "-", False), # preserve S
-    (Q, "b", "S", QB, "S", LOOKAHEAD_DISPATCH_ON_B, "-", False), # preserve S
+    # 1) lookahead dispatch while top is S (do NOT change stack; preserve S)
+    (Q,  "a",  "S",  QA,  "S",        LOOKAHEAD_DISPATCH_ON_A,                 "-",    False),
+    (Q,  "b",  "S",  QB,  "S",        LOOKAHEAD_DISPATCH_ON_B,                 "-",    False),
+    (Q,  "$",  "S",  QD,  "S",        LOOKAHEAD_DISPATCH_ON_ENDMARKER,         "-",    True),   # consume '$'
 
-    #    When next input is '$':
-    #    - If S remains, move to q$ and CONSUME '$' now; we’ll collapse remaining S by ε in q$.
-    #    - If S is already gone and only ⊥ remains (see below), we also handle '$' at BOT.
-    (Q, "$", "S", QD, "S", LOOKAHEAD_DISPATCH_ON_ENDMARKER, "-", True), # consume $, keep S
+    # 2) expand S based on the gate, then return to q
+    (QA, EPS,  "S",  Q,   "bSa",      EXPAND_S_TO_aSb_WHEN_LOOKAHEAD_A,        G1,     False),  # push b,S,a so 'a' is on top
+    (QB, EPS,  "S",  Q,   "",         EXPAND_S_TO_EPSILON_WHEN_LOOKAHEAD_B,    G2,     False),  # pop S (ε)
 
-    # 2) Expand S according to the dispatch gate, then immediately return to q (no input consumed)
-    #    Push order “bSa” so that 'a' ends up on TOP (rightmost) and can be matched next.
-    (QA, EPS,  "S",  Q,   "bSa",       EXPAND_S_TO_aSb_WHEN_LOOKAHEAD_A,        G1,     False),
-    (QB, EPS,  "S",  Q,   "",          EXPAND_S_TO_EPSILON_WHEN_LOOKAHEAD_B,    G2,     False),
+    # 3) match terminals (consume input)
+    (Q,  "a",  "a",  Q,   "",         MATCH_TERMINAL_A,                        "-",    True),
+    (Q,  "b",  "b",  Q,   "",         MATCH_TERMINAL_B,                        "-",    True),
 
-    # 3) Match terminals in the driver (these DO consume input)
-    (Q,  "a",  "a",  Q,   "",          MATCH_TERMINAL_A,                         "-",    True),
-    (Q,  "b",  "b",  Q,   "",          MATCH_TERMINAL_B,                         "-",    True),
+    # 4) end handling when only ⊥ remains (consume '$', keep ⊥ so q$ can pop it)
+    (Q,  "$",  BOT,  QD,  BOT,        LOOKAHEAD_DISPATCH_ON_ENDMARKER,         "-",    True),
 
-    # 4) End handling once all terminals are matched:
-    #    If only ⊥ remains on the stack and the next input is '$', CONSUME '$' and go to q$.
-    (Q,  "$",  BOT,  QD,  "",          LOOKAHEAD_DISPATCH_ON_ENDMARKER,         "-",    True),
-
-    # 5) In q$: collapse any leftover S by ε, then accept when only ⊥ remains
-    (QD, EPS,  "S",  QD,  "",          EXPAND_S_TO_EPSILON_AT_ENDMARKER,        G2,     False),
-    (QD, EPS,  BOT,  QACC,"",          FINAL_POP_BOTTOM_AND_ACCEPT,             "-",    False),
+    # 5) in q$: collapse any leftover S by ε, then pop ⊥ to accept
+    (QD, EPS,  "S",  QD,  "",         EXPAND_S_TO_EPSILON_AT_ENDMARKER,        G2,     False),
+    (QD, EPS,  BOT,  QACC,"",         FINAL_POP_BOTTOM_AND_ACCEPT,             "-",    False),
 ]
