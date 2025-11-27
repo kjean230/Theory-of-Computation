@@ -96,3 +96,33 @@ class DPDA: # holds the machine state, transitions, and run logic
         print(TABLE_HEADER)
         for step, state, unread, top, label, g in self.trace:
             print(f"{step:>4} | {state:<4} | {unread:<12} | {top:^3} | {label:<36} | {g}")
+
+    def main():  # simple CLI: run on provided inputs or the graded set; print table and ACCEPT/REJECT
+        import argparse, sys
+        ap = argparse.ArgumentParser(description="DPDA for L = { a^n b^n } with one-symbol lookahead and end-marker '$'")
+        ap.add_argument("inputs", nargs="*", help="Input strings like ab$, aabb$, ... (the program will append '$' if missing).")
+        ap.add_argument("--all", action="store_true", help="Run the demo suite: $, ab$, aabb$, aaabbb$, aaaabbbb$, aaaaaabbbbbb$.")
+        args = ap.parse_args()
+
+        suite = args.inputs if args.inputs else (["$", "ab$", "aabb$", "aaabbb$", "aaaabbbb$", "aaaaaabbbbbb$"] if args.all else [])
+        if not suite:
+            ap.print_usage()
+            print("\nProvide inputs (e.g., `python dpda.py aabb$`) or use `--all`.", file=sys.stderr)
+            sys.exit(2)
+
+        overall_ok = True
+        for s in suite:
+            m = DPDA()
+            try:
+                ok, rows = m.run(s)
+            except ValueError as e:
+                overall_ok = False
+                print(f"\nInput: {s}\nERROR: {e}")
+                continue
+
+            print(f"\nInput: {s}  →  {'ACCEPT' if ok else 'REJECT'}")
+            m.print_table()
+            if not ok:
+                overall_ok = False
+
+        sys.exit(0 if overall_ok else 1)
