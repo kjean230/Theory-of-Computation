@@ -105,6 +105,14 @@ class DPDA: # holds the machine state, transitions, and run logic
         ap.add_argument("--all", action="store_true", help="Run the demo suite: $, ab$, aabb$, aaabbb$, aaaabbbb$, aaaaaabbbbbb$.")
         args = ap.parse_args()
 
+        # If no inputs and not --all, fall back to an interactive prompt
+        if not args.inputs and not args.all:
+            raw = input("Enter one or more inputs (comma-separated), or 'q' to quit: ").strip()
+            if raw.lower() in {"q", "quit", "exit"}:
+                sys.exit(0)
+            # Allow comma-separated list like: ab$, aabb, aaabbb$
+            args.inputs = [part.strip() for part in raw.split(",") if part.strip()]
+
         suite = args.inputs if args.inputs else (["$", "ab$", "aabb$", "aaabbb$", "aaaabbbb$", "aaaaaabbbbbb$"] if args.all else [])
         if not suite:
             ap.print_usage()

@@ -51,13 +51,13 @@ TRANSITIONS = [  # ordered deterministic transitions: (state, input, top, next, 
 
     # 1) Lookahead dispatch while top is S (choose how to expand S based on next input)
     #    These DO NOT consume input for 'a' or 'b' (we only peek).
-    (Q,  "a",  "S",  QA,  "",          LOOKAHEAD_DISPATCH_ON_A,                 "-",    False),
-    (Q,  "b",  "S",  QB,  "",          LOOKAHEAD_DISPATCH_ON_B,                 "-",    False),
+    (Q, "a", "S", QA, "S", LOOKAHEAD_DISPATCH_ON_A, "-", False), # preserve S
+    (Q, "b", "S", QB, "S", LOOKAHEAD_DISPATCH_ON_B, "-", False), # preserve S
 
     #    When next input is '$':
     #    - If S remains, move to q$ and CONSUME '$' now; we’ll collapse remaining S by ε in q$.
     #    - If S is already gone and only ⊥ remains (see below), we also handle '$' at BOT.
-    (Q,  "$",  "S",  QD,  "",          LOOKAHEAD_DISPATCH_ON_ENDMARKER,         "-",    True),
+    (Q, "$", "S", QD, "S", LOOKAHEAD_DISPATCH_ON_ENDMARKER, "-", True), # consume $, keep S
 
     # 2) Expand S according to the dispatch gate, then immediately return to q (no input consumed)
     #    Push order “bSa” so that 'a' ends up on TOP (rightmost) and can be matched next.
@@ -76,6 +76,3 @@ TRANSITIONS = [  # ordered deterministic transitions: (state, input, top, next, 
     (QD, EPS,  "S",  QD,  "",          EXPAND_S_TO_EPSILON_AT_ENDMARKER,        G2,     False),
     (QD, EPS,  BOT,  QACC,"",          FINAL_POP_BOTTOM_AND_ACCEPT,             "-",    False),
 ]
-
-class DPDA: # holds the machine state, transitions, and run logic
-    ...
