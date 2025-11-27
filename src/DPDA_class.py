@@ -4,7 +4,7 @@ class DPDA: # holds the machine state, transitions, and run logic
     def __init__(self):
         self.transitions = TRANSITIONS
         self.state = None
-        self.idc = 0
+        self.idx = 0
         self.input_str = ""
         self.stack = []
         self.trace = []
@@ -16,9 +16,9 @@ class DPDA: # holds the machine state, transitions, and run logic
         s = s.strip()
         if not s.endswith(END):
             s += END
-            for ch in s:
-                if ch not in SIGMA:
-                    raise ValueError(f"Illegal symbol: {repr(ch)}; allowed symbols: {SIGMA}")
+        for ch in s:
+            if ch not in SIGMA:
+                raise ValueError(f"Illegal symbol: {repr(ch)}; allowed symbols: {SIGMA}")
         return s
     
     def reset(self, s):
@@ -42,7 +42,7 @@ class DPDA: # holds the machine state, transitions, and run logic
             step,
             self.state,
             self._unread(),
-            self.stack_top(),
+            self._stack_top(),
             label,
             g
         ))
@@ -97,6 +97,7 @@ class DPDA: # holds the machine state, transitions, and run logic
         for step, state, unread, top, label, g in self.trace:
             print(f"{step:>4} | {state:<4} | {unread:<12} | {top:^3} | {label:<36} | {g}")
 
+    @staticmethod
     def main():  # simple CLI: run on provided inputs or the graded set; print table and ACCEPT/REJECT
         import argparse, sys
         ap = argparse.ArgumentParser(description="DPDA for L = { a^n b^n } with one-symbol lookahead and end-marker '$'")
@@ -126,3 +127,7 @@ class DPDA: # holds the machine state, transitions, and run logic
                 overall_ok = False
 
         sys.exit(0 if overall_ok else 1)
+
+
+if __name__ == "__main__":
+    DPDA.main()
