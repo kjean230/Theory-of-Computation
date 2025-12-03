@@ -1,13 +1,18 @@
-from DPDA_FILE import *
+# DPDA_class.py — DPDA engine, trace printing, and CLI
+from DPDA_FILE import (
+    EPS, END, BOT,
+    P, Q, QA, QB, QD, QACC,
+    FINAL_STATES, SIGMA, TABLE_HEADER, TRANSITIONS
+)
 
-class DPDA: # holds the machine state, transitions, and run logic
+class DPDA:
     def __init__(self):
         self.transitions = TRANSITIONS
         self.state = None
         self.idx = 0
         self.input_str = ""
-        self.stack = []
-        self.trace = []
+        self.stack = []    # Python list; rightmost element is the TOP
+        self.trace = []    # rows of (step, state, unread, top, Δ, G)
 
     def normalize_input(self, x):
         s = "".join(x) if isinstance(x, (list, tuple)) else (x if isinstance(x, str) else None)
@@ -16,13 +21,17 @@ class DPDA: # holds the machine state, transitions, and run logic
         s = s.strip()
         if not s.endswith(END):
             s += END
+        # Enforce exactly one trailing '$'
+        if s.count(END) != 1 or s[-1] != END:
+            raise ValueError("Input must contain exactly one end marker '$' at the end.")
+        # Enforce only allowed characters
         for ch in s:
             if ch not in SIGMA:
                 raise ValueError(f"Illegal symbol: {repr(ch)}; allowed symbols: {SIGMA}")
         return s
-    
+
     def reset(self, s):
-        self.input_str = s 
+        self.input_str = s
         self.idx = 0
         self.state = P
         self.stack = []
@@ -30,10 +39,10 @@ class DPDA: # holds the machine state, transitions, and run logic
 
     def _stack_top(self):
         return self.stack[-1] if self.stack else EPS
-    
+
     def _unread(self):
         return self.input_str[self.idx:]
-    
+
     def _next_input(self):
         return self.input_str[self.idx] if self.idx < len(self.input_str) else EPS
 
@@ -50,80 +59,84 @@ class DPDA: # holds the machine state, transitions, and run logic
     def _match_entry(self):
         la = self._next_input()
         top = self._stack_top()
-        st = self.state
-
+        st  = self.state
         for (s, in_sym, t, next_state, push, label, g, consumes) in self.transitions:
             if s != st:
                 continue
             if in_sym == EPS:
-                if t == top: 
+                if t == top:
                     return (s, in_sym, t, next_state, push, label, g, consumes)
-            else: 
+            else:
                 if in_sym == la and t == top:
                     return (s, in_sym, t, next_state, push, label, g, consumes)
         return None
-    
-    def _apply(self, entry):  # execute the selected transition: pop/push stack, advance input, change state
+
+    def _apply(self, entry):
         (_, in_sym, top_sym, next_state, push, _label, _g, consumes) = entry
-        if top_sym != EPS and self.stack:  # pop the expected top (if any)
-            self.stack.pop()
-        for ch in push:                     # push left→right so the rightmost becomes the new top
-            self.stack.append(ch)
-        if consumes:                        # advance input index if this rule consumes a symbol
-            self.idx += 1
-        self.state = next_state             # move to the next state
+        if top_sym != EPS and self.stack:
+            self.stack.pop()           # pop expected top
+        for ch in push:
+            self.stack.append(ch)      # push left→right; rightmost becomes top
+        if consumes:
+            self.idx += 1              # advance input
+        self.state = next_state
 
-    def run(self, input_obj):  # execute the DPDA on the given input; return (accepted, trace_rows)
-        s = self.normalize_input(input_obj)  # ensure string ends with '$' and uses only allowed symbols
-        self.reset(s)                        # start fresh: state=p, idx=0, empty stack, clear trace
-
+    def run(self, input_obj):
+        s = self.normalize_input(input_obj)
+        self.reset(s)
         step = 0
         while True:
-            if self.state in FINAL_STATES:           # reached accepting state
+            if self.state in FINAL_STATES:
+                # As normalize_input enforces exactly one trailing '$',
+                # reaching q_accept implies full consumption.
                 return True, self.trace
 
-            entry = self._match_entry()              # pick the single deterministic next move
-            if entry is None:                        # no move ⇒ reject with trace as-is
-                self._append_row(step, "—", "—")     # log a terminal row showing no applicable transition
+            entry = self._match_entry()
+            if entry is None:
+                self._append_row(step, "—", "—")
                 return False, self.trace
 
             _s, in_sym, _t, _n, _push, label, g, _c = entry
-            self._append_row(step, label, g)        # log BEFORE applying the transition (as required by your table)
-            self._apply(entry)                       # mutate state, stack, and input index
-            step += 1                                # next row number
+            self._append_row(step, label, g)
+            self._apply(entry)
+            step += 1
 
-    def print_table(self):  # print the fixed-width table for the current trace
+    def print_table(self):
         print(TABLE_HEADER)
         for step, state, unread, top, label, g in self.trace:
             print(f"{step:>4} | {state:<4} | {unread:<12} | {top:^3} | {label:<36} | {g}")
 
     @staticmethod
-    def main():  # simple CLI: run on provided inputs or the graded set; print table and ACCEPT/REJECT
+    def main():
         import argparse, sys
-        ap = argparse.ArgumentParser(description="DPDA for L = { a^n b^n } with one-symbol lookahead and end-marker '$'")
-        ap.add_argument("inputs", nargs="*", help="Input strings like ab$, aabb$, ... (the program will append '$' if missing).")
-        ap.add_argument("--all", action="store_true", help="Run the demo suite: $, ab$, aabb$, aaabbb$, aaaabbbb$, aaaaaabbbbbb$.")
+        ap = argparse.ArgumentParser(
+            description="DPDA for L = { a^n b^n } with one-symbol lookahead and end-marker '$'"
+        )
+        ap.add_argument("inputs", nargs="*", help="Inputs like ab$, aabb$ (program appends '$' if missing).")
+        ap.add_argument("--all", action="store_true",
+                        help="Run demo suite: $, ab$, aabb$, aaabbb$, aaaabbbb$, aaaaaabbbbbb$.")
         args = ap.parse_args()
 
-        # If no inputs and not --all, fall back to an interactive prompt
+        # Interactive fallback
         if not args.inputs and not args.all:
             raw = input("Enter one or more inputs (comma-separated), or 'q' to quit: ").strip()
             if raw.lower() in {"q", "quit", "exit"}:
                 sys.exit(0)
-            # Allow comma-separated list like: ab$, aabb, aaabbb$
             args.inputs = [part.strip() for part in raw.split(",") if part.strip()]
 
-        suite = args.inputs if args.inputs else (["$", "ab$", "aabb$", "aaabbb$", "aaaabbbb$", "aaaaaabbbbbb$"] if args.all else [])
+        suite = args.inputs if args.inputs else (
+            ["$", "ab$", "aabb$", "aaabbb$", "aaaabbbb$", "aaaaaabbbbbb$"] if args.all else []
+        )
         if not suite:
             ap.print_usage()
-            print("\nProvide inputs (e.g., `python dpda.py aabb$`) or use `--all`.", file=sys.stderr)
+            print("\nProvide inputs (e.g., `python DPDA_class.py aabb$`) or use `--all`.", file=sys.stderr)
             sys.exit(2)
 
         overall_ok = True
         for s in suite:
             m = DPDA()
             try:
-                ok, rows = m.run(s)
+                ok, _rows = m.run(s)
             except ValueError as e:
                 overall_ok = False
                 print(f"\nInput: {s}\nERROR: {e}")
