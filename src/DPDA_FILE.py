@@ -1,12 +1,14 @@
 # DPDA_FILE.py — constants, labels, and ordered transition table
-# Language: L = { a^n b^n | n ≥ 0 }, one-symbol lookahead, accept by final state after consuming '$'
+# Problem to solve: L = { a^n b^n | n ≥ 0 }
+# one-ymbol lookahead, accept by final state after consuming '$'
 
-# ----- Symbols -----
+# Symbols and special markers
+# all used in the deterministic transitions table 
 EPS = "ε"        # epsilon
 END = "$"        # end-marker
 BOT = "⊥"        # bottom-of-stack (rightmost character = top of stack)
 
-# ----- States -----
+# States in the DPDA 
 P    = "p"         # pre-init
 Q    = "q"         # driver (matches terminals, dispatches lookahead)
 QA   = "qa"        # lookahead gate when next input is 'a'
@@ -17,15 +19,19 @@ QACC = "q_accept"  # accepting (final)
 STATES       = {P, Q, QA, QB, QD, QACC}
 FINAL_STATES = {QACC}
 
-# ----- Alphabets -----
+# Alphabets that are only allowed in the DPDA model 
 SIGMA = {"a", "b", END}       # input alphabet
 GAMMA = {"S", "a", "b", BOT}  # stack alphabet
 
-# ----- Grammar labels (G column) -----
+# Grammar labels (G column) for trace printing
+# these will be used in the G column of the trace
 G1 = "S→aSb"
 G2 = "S→ε"
 
-# ----- Descriptive Δ labels -----
+# Descriptive delta labels
+# this will be used in the Δ column of the trace
+# Note: some labels are reused for similar transitions
+# all exist within the transitions table
 INIT_PUSH_BOTTOM_AND_START        = "init: push ⊥ and S"
 LOOKAHEAD_DISPATCH_ON_A           = "lookahead a: go to qa"
 LOOKAHEAD_DISPATCH_ON_B           = "lookahead b: go to qb"
@@ -37,10 +43,10 @@ MATCH_TERMINAL_A                  = "match terminal 'a'"
 MATCH_TERMINAL_B                  = "match terminal 'b'"
 FINAL_POP_BOTTOM_AND_ACCEPT       = "final: pop ⊥ and accept"
 
-# ----- Table header (for printing) -----
+#  Table header (for printing and visual effects)
 TABLE_HEADER = "step | state | unread | top | Δ | G"
 
-# ----- Ordered deterministic transitions: (state, input, top, next, push, label, G, consumes) -----
+# Ordered deterministic transitions: (state, input, top, next, push, label, G, consumes) 
 TRANSITIONS = [
 
     # 0) init: push ⊥ and S

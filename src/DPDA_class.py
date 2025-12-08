@@ -15,6 +15,10 @@ class DPDA:
         self.trace = []    # rows of (step, state, unread, top, Δ, G)
 
     def normalize_input(self, x):
+        """
+        making sure the input is a string ending with exactly one '$'
+        and only contains allowed symbols from SIGMA
+        """
         s = "".join(x) if isinstance(x, (list, tuple)) else (x if isinstance(x, str) else None)
         if s is None:
             raise ValueError("Input has to be a string, list, or tuple.")
@@ -31,6 +35,9 @@ class DPDA:
         return s
 
     def reset(self, s):
+        """
+        Reset the DPDA to the initial state with a new input string.
+        """
         self.input_str = s
         self.idx = 0
         self.state = P
@@ -38,15 +45,36 @@ class DPDA:
         self.trace = []
 
     def _stack_top(self):
+        """
+        Return the top element of the stack, or EPS (ε) if the stack is empty.
+        """
         return self.stack[-1] if self.stack else EPS
 
     def _unread(self):
+        """
+        Return the unread portion of the input string.
+        basically after the first 'idx' characters
+        """
         return self.input_str[self.idx:]
 
     def _next_input(self):
+        """
+        Return the next input symbol, or EPS (ε) if at the end of input.
+        this can be considered as the lookahead symbol (method)
+        """
         return self.input_str[self.idx] if self.idx < len(self.input_str) else EPS
 
     def _append_row(self, step, label, g):
+        """
+        adds a row to the trace table
+        adds:
+        - step (move #)
+        - state (current DPDA state)
+        - unread (unused string input)
+        - top (current stack top)
+        - label (human readable rule)
+        - g (grammar rule if any)
+        """
         self.trace.append((
             step,
             self.state,
@@ -57,6 +85,11 @@ class DPDA:
         ))
 
     def _match_entry(self):
+        """
+        finds the first matching transition entry based on current state,
+        next input symbol (lookahead), and stack top.
+        returns the full transition if found, else None.
+        """
         la = self._next_input()
         top = self._stack_top()
         st  = self.state
@@ -72,6 +105,10 @@ class DPDA:
         return None
 
     def _apply(self, entry):
+        """
+        Apply the given transition entry 
+        by updating the DPDA's state, stack, and input index.
+        """
         (_, in_sym, top_sym, next_state, push, _label, _g, consumes) = entry
         if top_sym != EPS and self.stack:
             self.stack.pop()           # pop expected top
@@ -82,6 +119,12 @@ class DPDA:
         self.state = next_state
 
     def run(self, input_obj):
+        """
+        Reset the DPDA to the initial state with a new input string.
+        then run the DPDA until it either accepts or rejects.
+        returns (accepted: bool, trace: list of rows)
+        each row is (step, state, unread, top, label, g)
+        """
         s = self.normalize_input(input_obj)
         self.reset(s)
         step = 0
@@ -102,12 +145,18 @@ class DPDA:
             step += 1
 
     def print_table(self):
+        """
+        Print the trace table of the DPDA model run.
+        """
         print(TABLE_HEADER)
         for step, state, unread, top, label, g in self.trace:
             print(f"{step:>4} | {state:<4} | {unread:<12} | {top:^3} | {label:<36} | {g}")
 
     @staticmethod
     def main():
+        """
+        command-line interface for running the DPDA on inputs
+        """
         import argparse, sys
         ap = argparse.ArgumentParser(
             description="DPDA for L = { a^n b^n } with one-symbol lookahead and end-marker '$'"
